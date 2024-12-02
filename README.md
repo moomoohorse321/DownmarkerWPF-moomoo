@@ -26,19 +26,22 @@ Updates will be installed directly through MarkPad.
  - [WiX](http://wixtoolset.org/releases/v3.9/stable) - to generate the installer (optional)
  - [7-Zip](http://www.7-zip.org/download.html) - to generate a zip version of the tool (optional)
 
-## Contributing
+# Recent Contributions: Extended Test Coverage
+To ensure the reliability and robustness of the project, I contributed additional unit tests covering various edge cases and functionalities. Below is an overview of my contributions:
 
-If you want to contribute to the project, check out the [Issues](https://github.com/Code52/DownmarkerWPF/issues) tab. 
+## Highlights of the Added Tests:
+1. FileMarkdownDocumentTests:
 
-You can:
+- Added tests to handle unsupported file types, ensuring the application throws an appropriate exception.
+- Prevented overwriting files when the content is empty during a save operation.
 
- - Raise an issue
- - Suggest a feature for the application
+2. FileSystemSiteItemTests:
 
-Feeling like writing some code? Why not take the next [step](http://code52.org/contributing.html):
+- Ensured FileRenamedEvent is ignored when the event references unrelated files.
+- Prevented duplicate children from being added to the Children collection when a file creation event occurs.
 
- - Fork the repository
- - Make the changes to the codebase
- - Send a pull request once you're happy with it
+3. JekyllSiteContextTests:
 
-The team will then review the changes, discuss if anything needs to be addressed, and integrate your changes back into the application.
+- Verified that renaming a directory triggers the correct FileRenamedEvent.
+- Ensured application stability by handling errors gracefully during file system watcher events.
+- These additions aim to improve the overall code quality, catch edge cases, and provide better guarantees for the behavior of the system in various scenarios.

@@ -48,6 +48,43 @@ namespace MarkPad.Tests.DocumentSources.FileSystem
         }
 
         [Fact]
+        public void renamed_directory_raises_file_renamed_event()
+        {
+            // arrange
+            const string oldDirectoryName = @"C:\Site\OldFolder";
+            const string newDirectoryName = @"C:\Site\NewFolder";
+            var renamedEventArgs = new RenamedEventArgs(WatcherChangeTypes.Renamed, basePath, "NewFolder", "OldFolder");
+
+            // act
+            fileSystemWatcher.Renamed += Raise.Event<RenamedEventHandler>(null, renamedEventArgs);
+
+            // assert
+            eventAggregator.Received().Publish(Arg.Is<FileRenamedEvent>(f => 
+                f.NewFileName == newDirectoryName && 
+                f.OriginalFileName == oldDirectoryName));
+        }
+
+        [Fact]
+        public void error_in_filesystem_event_does_not_crash()
+        {
+            // arrange
+            var createdEvent = new FileSystemEventArgs(WatcherChangeTypes.Created, basePath, "NewFile.md");
+            eventAggregator
+                .When(e => e.Publish(Arg.Any<FileCreatedEvent>()))
+                .Do(call => throw new IOException("Test exception"));
+
+            // act
+            var exception = Record.Exception(() => 
+                fileSystemWatcher.Created += Raise.Event<FileSystemEventHandler>(null, createdEvent)
+            );
+
+            // assert
+            Assert.Null(exception); // No exception should propagate
+        }
+
+
+
+        [Fact]
         public void raises_file_renamed_event_when_watcher_notifies_of_rename()
         {
             // arrange

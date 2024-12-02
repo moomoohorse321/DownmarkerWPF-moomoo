@@ -33,6 +33,37 @@ namespace MarkPad.Tests.DocumentSources.FileSystem
 
             documentUnderTest = CreateFileMarkdownDocument(DocumentFilename, "Content");
         }
+        [Fact]
+        public void DoesNotHandleUnsupportedFileTypes()
+        {
+            // arrange
+            const string unsupportedFilename = @"c:\Path\File.txt";
+            var unsupportedDocument = CreateFileMarkdownDocument(unsupportedFilename, "Content");
+
+            // act & assert
+            Assert.Throws<UnsupportedFileTypeException>(() =>
+            {
+                unsupportedDocument.Handle(new FileRenamedEvent(unsupportedFilename, unsupportedFilename));
+            });
+        }
+
+        [Fact]
+        public async Task Save_DoesNotOverwriteWhenContentIsEmpty()
+        {
+            // arrange
+            var fileInfo = Substitute.For<IFileInfo>();
+            fileInfo.IsReadOnly.Returns(false);
+            fileSystem.FileInfo(DocumentFilename).Returns(fileInfo);
+            var emptyContentDocument = CreateFileMarkdownDocument(DocumentFilename, string.Empty);
+
+            // act
+            await emptyContentDocument.Save();
+
+            // assert
+            fileSystem.File.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>());
+        }
+
+
 
         [Fact]
         public async Task Save_PromptsToMakeReadOnlyFileWritable()

@@ -39,6 +39,47 @@ namespace MarkPad.Tests.DocumentSources.FileSystem
         }
 
         [Fact]
+        public void does_not_rename_when_event_does_not_match_path()
+        {
+            // arrange
+            var eventAggregator = Substitute.For<IEventAggregator>();
+            const string originalFileName = @"c:\OriginalFile.txt";
+            const string unrelatedFileName = @"c:\UnrelatedFile.txt";
+            var testItem = new FileSystemSiteItem(eventAggregator, fileSystem, originalFileName)
+            {
+                Name = "OriginalFile.txt",
+                Selected = true,
+                IsRenaming = false
+            };
+
+            // act
+            testItem.Handle(new FileRenamedEvent(unrelatedFileName, @"c:\UnrelatedFileRenamed.txt"));
+
+            // assert
+            Assert.Equal("OriginalFile.txt", testItem.Name);
+            Assert.Equal(originalFileName, testItem.Path);
+        }
+
+        [Fact]
+        public void does_not_insert_duplicate_child_on_file_created_event()
+        {
+            // arrange
+            var eventAggregator = Substitute.For<IEventAggregator>();
+            const string folderPath = @"c:\Site\Folder";
+            var testItem = new FileSystemSiteItem(eventAggregator, fileSystem, folderPath);
+            testItem.Children.Add(new TestItem(eventAggregator) { Name = "Alpha.txt" });
+
+            // act
+            testItem.Handle(new FileCreatedEvent(@"c:\Site\Folder\Alpha.txt"));
+
+            // assert
+            Assert.Single(testItem.Children);
+            Assert.Equal("Alpha.txt", testItem.Children[0].Name);
+        }
+
+
+
+        [Fact]
         public void undo_rename_reverts_changes()
         {
             // arrange
